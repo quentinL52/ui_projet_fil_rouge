@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Améliorez vos Entretiens Data/IA avec Notre Simulateur d'Entretien IA{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    body, .landing-section, .landing-title, .landing-desc, .landing-block-title, .landing-list, .landing-footer {
+        font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+    }
+    .landing-title {
+        background: linear-gradient(90deg, var(--primary-color) 30%, #a18aff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 2.3rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2.2rem;
+        letter-spacing: -1px;
+    }
+    .landing-desc {
+        color: var(--secondary-color);
+        font-size: 1.18rem;
+        text-align: center;
+        margin-bottom: 2.2rem;
+        line-height: 1.7;
+        font-weight: 400;
+    }
+    .features-row {
+        display: flex;
+        gap: 40px;
+        justify-content: center;
+        margin-top: 2.5rem;
+        flex-wrap: wrap;
+    }
+    .feature-col {
+        background: rgba(255,255,255,0.95);
+        border-radius: 18px;
+        box-shadow: 0 4px 24px 0 rgba(123,108,246,0.07);
+        padding: 2.2rem 1.5rem 1.5rem 1.5rem;
+        max-width: 340px;
+        min-width: 260px;
+        flex: 1 1 320px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .feature-img {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 2px 12px 0 rgba(123,108,246,0.10);
+        opacity: 0.96;
+    }
+    .feature-title {
+        color: var(--primary-color);
+        font-size: 1.18rem;
+        font-weight: 600;
+        margin-bottom: 1.1rem;
+        text-align: center;
+    }
+    .feature-list {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+        width: 100%;
+    }
+    .feature-list li {
+        margin-bottom: 0.7rem;
+        color: var(--secondary-color);
+        font-size: 1.05rem;
+        line-height: 1.6;
+        position: relative;
+        padding-left: 2em;
+    }
+    .feature-list li::before {
+        content: '\2022';
+        color: var(--primary-color);
+        font-size: 1.3em;
+        position: absolute;
+        left: 0.2em;
+        top: 0.1em;
+        font-weight: bold;
+        opacity: 0.7;
+    }
+    .feature-list b {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    .landing-footer {
+        color: #6c6f7a;
+        font-size: 1.08rem;
+        text-align: center;
+        margin-top: 2.5rem;
+        line-height: 1.6;
+        font-style: italic;
+    }
+    @media (max-width: 900px) {
+        .features-row {
+            flex-direction: column;
+            gap: 24px;
+        }
+        .feature-col {
+            max-width: 100%;
+        }
+    }
+</style>
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 60vh;">
+    <div class="landing-title">Améliorez vos Entretiens Data/IA avec Notre Simulateur d'Entretien IA</div>
+    <div class="landing-desc">
+        Nous développons un outil innovant pour aider les candidats et les recruteurs à mieux préparer et mener les entretiens d'embauche dans les domaines de la data et de l'IA. Notre objectif est de créer un simulateur d'entretien intelligent qui offre une expérience pratique et personnalisée.
+    </div>
+    <div class="features-row">
+        <div class="feature-col">
+            <img src="{{ url_for('static', filename='candidat.png') }}" alt="Candidat" class="feature-img">
+            <div class="feature-title">Pour les Candidats</div>
+            <ul class="feature-list">
+                <li><b>Entraînez-vous de manière ciblée :</b> Nous travaillons à vous proposer des simulations basées sur les compétences clés recherchées dans les offres d'emploi et celles présentes dans votre CV.</li>
+                <li><b>Recevez des retours constructifs :</b> Nous souhaitons vous fournir une analyse de vos réponses pour vous aider à identifier vos points forts et les aspects à améliorer.</li>
+                <li><b>Gagnez en assurance :</b> Notre but est de vous permettre de vous familiariser avec le format des entretiens et de réduire le stress lié à cette étape cruciale.</li>
+            </ul>
+        </div>
+        <div class="feature-col">
+            <img src="{{ url_for('static', filename='recruteur.png') }}" alt="Recruteur" class="feature-img">
+            <div class="feature-title">Pour les Recruteurs</div>
+            <ul class="feature-list">
+                <li><b>Optimisez votre processus de sélection :</b> Nous cherchons à vous offrir un outil pour évaluer les candidats de manière plus efficace et structurée.</li>
+                <li><b>Gagnez du temps dans la présélection :</b> Nous souhaitons vous aider à identifier rapidement les profils les plus prometteurs pour les postes à pourvoir.</li>
+                <li><b>Obtenez des informations pertinentes :</b> Notre objectif est de vous fournir des rapports d'évaluation pour faciliter vos décisions d'embauche.</li>
+            </ul>
+        </div>
+    </div>
+    <div class="landing-footer">
+        Nous sommes en phase de développement et nous nous efforçons de créer un outil qui réponde aux besoins réels des candidats et des recruteurs dans le secteur de la data et de l'IA.<br>
+        Restez informés des mises à jour et soyez parmi les premiers à tester notre solution !
+        <div class="d-flex justify-content-center align-items-center mt-4" style="gap: 18px;">
+            <a href="https://www.linkedin.com/in/loumeau-quentin/" target="_blank" rel="noopener" class="btn btn-outline-primary" style="border-color: var(--primary-color); color: var(--primary-color); font-weight: 600;">
+                <i class="fab fa-linkedin"></i> Me suivre
+            </a>
+            <a href="{{ url_for('contact') }}" class="btn btn-primary" style="background: var(--primary-color); border: none; font-weight: 600;">
+                <i class="fas fa-envelope"></i> Contact
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

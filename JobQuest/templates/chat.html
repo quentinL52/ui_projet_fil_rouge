@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}Simuler un entretien - AIrh{% endblock %}
+
+{% block content %}
+<style>
+    .page-container {
+        display: flex;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 1rem;
+    }
+    .cv-upload-section {
+        flex: 0 0 300px;
+        background: rgba(255,255,255,0.97);
+        border-radius: 18px;
+        box-shadow: 0 4px 24px 0 rgba(123,108,246,0.07);
+        padding: 2rem;
+    }
+    .cv-upload-title {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+    .cv-upload-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .cv-upload-input {
+        border: 2px dashed var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .cv-upload-input:hover {
+        border-color: var(--primary-color);
+        background: rgba(123,108,246,0.05);
+    }
+    .cv-upload-input input[type="file"] {
+        display: none;
+    }
+    .cv-upload-text {
+        color: var(--secondary-color);
+        font-size: 0.9rem;
+    }
+    .cv-upload-button {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .cv-upload-button:hover {
+        background: #a18aff;
+    }
+    .cv-upload-button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+    .chat-container {
+        flex: 1;
+        background: rgba(255,255,255,0.97);
+        border-radius: 18px;
+        box-shadow: 0 4px 24px 0 rgba(123,108,246,0.07);
+        padding: 2.2rem 2rem 2rem 2rem;
+        display: flex;
+        flex-direction: column;
+        min-height: 500px;
+    }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+    }
+    .chat-bubble {
+        max-width: 80%;
+        padding: 12px 18px;
+        border-radius: 18px;
+        font-size: 1.08rem;
+        line-height: 1.6;
+        box-shadow: 0 2px 8px rgba(123,108,246,0.07);
+        word-break: break-word;
+    }
+    .chat-bubble.user {
+        align-self: flex-end;
+        background: var(--primary-color);
+        color: #fff;
+        border-bottom-right-radius: 4px;
+    }
+    .chat-bubble.ai {
+        align-self: flex-start;
+        background: #f5f3ff;
+        color: var(--secondary-color);
+        border-bottom-left-radius: 4px;
+    }
+    .chat-input-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 1rem;
+    }
+    .chat-input {
+        flex: 1;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding: 10px 14px;
+        font-size: 1.08rem;
+    }
+    .btn-send {
+        background: var(--primary-color);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        padding: 10px 22px;
+        transition: background 0.2s;
+    }
+    .btn-send:hover {
+        background: #a18aff;
+    }
+    .upload-status {
+        margin-top: 1rem;
+        padding: 0.8rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        display: none;
+    }
+    .upload-status.success {
+        background: #e6f4ea;
+        color: #1e7e34;
+        display: block;
+    }
+    .upload-status.error {
+        background: #fbe9e7;
+        color: #d32f2f;
+        display: block;
+    }
+    .chat-container.waiting {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    .instructions-message {
+        text-align: center;
+        padding: 2rem;
+        color: var(--secondary-color);
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    .instructions-message i {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .instructions-message strong {
+        color: var(--primary-color);
+    }
+</style>
+
+<div class="page-container">
+    <div class="cv-upload-section">
+        <div class="cv-upload-title">Ajouter votre CV</div>
+        <form class="cv-upload-form" id="cv-upload-form">
+            <label class="cv-upload-input" for="cv-file">
+                <input type="file" id="cv-file" accept=".pdf" required>
+                <div class="cv-upload-text">
+                    <i class="fas fa-file-pdf"></i><br>
+                    Glissez votre CV ici ou cliquez pour sélectionner<br>
+                    <small>Format PDF uniquement</small>
+                </div>
+            </label>
+            <button type="submit" class="cv-upload-button" id="upload-button" disabled>Envoyer le CV</button>
+            <div class="upload-status" id="upload-status"></div>
+        </form>
+    </div>
+
+    <div class="chat-container" id="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            <div class="instructions-message">
+                <i class="fas fa-file-upload"></i>
+                <p>Pour commencer l'entretien, veuillez d'abord déposer votre CV au format PDF.</p>
+                <p>Une fois votre CV analysé, l'entretien démarrera automatiquement.</p>
+                <p><strong>Note :</strong> Votre CV sera utilisé pour personnaliser les questions de l'entretien.</p>
+            </div>
+        </div>
+        <form class="chat-input-row" id="chat-form" autocomplete="off">
+            <input type="text" class="chat-input" id="chat-input" placeholder="Votre message..." required autofocus disabled>
+            <button type="submit" class="btn btn-send" disabled>Envoyer</button>
+        </form>
+    </div>
+</div>
+
+<script>
+const chatForm = document.getElementById('chat-form');
+const chatInput = document.getElementById('chat-input');
+const chatMessages = document.getElementById('chat-messages');
+const chatContainer = document.getElementById('chat-container');
+const cvUploadForm = document.getElementById('cv-upload-form');
+const cvFileInput = document.getElementById('cv-file');
+const uploadButton = document.getElementById('upload-button');
+const uploadStatus = document.getElementById('upload-status');
+const sendButton = document.querySelector('.btn-send');
+
+// Historique des messages
+let history = [];
+let cvUploaded = false;
+
+// Gestion de l'upload de CV
+cvFileInput.addEventListener('change', function() {
+    uploadButton.disabled = !this.files.length;
+});
+
+cvUploadForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('cv', cvFileInput.files[0]);
+
+    try {
+        uploadStatus.className = 'upload-status';
+        uploadStatus.textContent = 'Envoi du CV en cours...';
+        uploadStatus.style.display = 'block';
+
+        const response = await fetch(`/upload-cv/{{ job_id }}`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            uploadStatus.className = 'upload-status success';
+            uploadStatus.textContent = 'CV envoyé avec succès !';
+            cvFileInput.value = '';
+            uploadButton.disabled = true;
+            
+            // Activer le chat et démarrer la conversation
+            cvUploaded = true;
+            chatContainer.classList.remove('waiting');
+            chatInput.disabled = false;
+            sendButton.disabled = false;
+            
+            // Supprimer le message d'instructions
+            chatMessages.innerHTML = '';
+            
+            // Démarrer la conversation
+            startConversation();
+        } else {
+            throw new Error(data.error || 'Erreur lors de l\'envoi du CV');
+        }
+    } catch (error) {
+        uploadStatus.className = 'upload-status error';
+        uploadStatus.textContent = error.message;
+    }
+});
+
+// Fonction pour démarrer la conversation
+async function startConversation() {
+    history = [{role: "user", content: "Bonjour"}];
+    const res = await fetch(window.location.pathname, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({messages: history, question_count: 0})
+    });
+    const data = await res.json();
+    afficherMessageIA(data.response);
+    history.push({role: "assistant", content: data.response});
+}
+
+chatForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!cvUploaded) return;
+    
+    const userMsg = chatInput.value.trim();
+    if (!userMsg) return;
+    afficherMessageUser(userMsg);
+    history.push({role: "user", content: userMsg});
+    chatInput.value = '';
+    const res = await fetch(window.location.pathname, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({messages: history, question_count: Math.floor(history.length/2)})
+    });
+    const data = await res.json();
+    afficherMessageIA(data.response);
+    history.push({role: "assistant", content: data.response});
+});
+
+function afficherMessageUser(msg) {
+    const userBubble = document.createElement('div');
+    userBubble.className = 'chat-bubble user';
+    userBubble.textContent = msg;
+    chatMessages.appendChild(userBubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function afficherMessageIA(msg) {
+    const aiBubble = document.createElement('div');
+    aiBubble.className = 'chat-bubble ai';
+    aiBubble.textContent = msg;
+    chatMessages.appendChild(aiBubble);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+</script>
+{% endblock %} 
