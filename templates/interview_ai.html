@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Copilot - Sensei AI{% endblock %}
+
+{% block content %}
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-messages {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+    }
+
+    .message {
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message-content {
+        padding: 1rem;
+        border-radius: 0.75rem;
+        max-width: 80%;
+    }
+
+    .message.bot .message-content {
+        background: #F3F4F6;
+        color: var(--text-color);
+        align-self: flex-start;
+    }
+
+    .message.user .message-content {
+        background: var(--primary-color);
+        color: white;
+        align-self: flex-end;
+    }
+
+    .chat-input {
+        display: flex;
+        gap: 1rem;
+        background: white;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-input input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        font-size: 1rem;
+    }
+
+    .chat-input input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .chat-input button {
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .chat-input button:hover {
+        background: var(--secondary-color);
+    }
+
+    .chat-input button:disabled {
+        background: #E5E7EB;
+        cursor: not-allowed;
+    }
+
+    .typing-indicator {
+        display: none;
+        padding: 1rem;
+        background: #F3F4F6;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        align-self: flex-start;
+    }
+
+    .typing-indicator span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #9CA3AF;
+        border-radius: 50%;
+        margin-right: 4px;
+        animation: typing 1s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+        margin-right: 0;
+    }
+
+    @keyframes typing {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+</style>
+
+<div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+        <div class="message bot">
+            
+        </div>
+    </div>
+    <div class="typing-indicator" id="typingIndicator">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="userInput" placeholder="Tapez votre message..." autocomplete="off">
+        <button id="sendButton">Envoyer</button>
+    </div>
+</div>
+
+<script>
+    const chatMessages = document.getElementById('chatMessages');
+    const userInput = document.getElementById('userInput');
+    const sendButton = document.getElementById('sendButton');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const jobId = "{{ job_id }}";
+
+    // --- LA CRÉATION DE L'HISTORIQUE EST ICI ---
+    // On initialise un tableau vide pour stocker tous les messages.
+    let conversationHistory = [];
+
+    // --- Fonctions utilitaires ---
+    function addMessageToUI(content, role = 'bot') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role === 'user' ? 'user' : 'bot'}`;
+        const formattedContent = content.replace(/\n/g, '<br>');
+        messageDiv.innerHTML = `<div class="message-content">${formattedContent}</div>`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+        typingIndicator.style.display = 'block';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        typingIndicator.style.display = 'none';
+    }
+
+    // --- Logique principale de conversation ---
+    async function postConversation() {
+        sendButton.disabled = true;
+        userInput.disabled = true;
+        showTypingIndicator();
+
+        try {
+            // --- ON ENVOIE L'HISTORIQUE COMPLET ICI ---
+            const response = await fetch('/interview-ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: conversationHistory, // On envoie tout le tableau
+                    job_id: jobId
+                })
+            });
+
+            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+            
+            const data = await response.json();
+            hideTypingIndicator();
+
+            if (data.response) {
+                // On ajoute la réponse de l'IA à l'UI et à l'historique
+                addMessageToUI(data.response, 'ai');
+                conversationHistory.push({ role: 'ai', content: data.response });
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            hideTypingIndicator();
+            addMessageToUI('Désolé, une erreur technique est survenue.');
+        }
+
+        sendButton.disabled = false;
+        userInput.disabled = false;
+        userInput.focus();
+    }
+
+    async function handleUserMessage() {
+        const userMessageText = userInput.value.trim();
+        if (!userMessageText) return;
+
+        // On ajoute le message de l'utilisateur à l'UI et à l'historique
+        addMessageToUI(userMessageText, 'user');
+        conversationHistory.push({ role: 'user', content: userMessageText });
+        userInput.value = '';
+
+        await postConversation();
+    }
+    
+    // --- Démarrage automatique de l'entretien ---
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("Démarrage automatique de l'entretien...");
+        
+        // On simule un premier message pour lancer la logique
+        conversationHistory.push({ role: 'user', content: 'Bonjour' });
+
+        // On appelle la fonction de conversation pour obtenir la première question de l'IA
+        postConversation();
+    });
+
+    // --- Écouteurs d'événements ---
+    sendButton.addEventListener('click', handleUserMessage);
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            handleUserMessage();
+        }
+    });
+
+    userInput.focus();
+</script>
+{% endblock %}
